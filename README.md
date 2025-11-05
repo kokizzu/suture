@@ -130,6 +130,12 @@ idea to distribute libraries that provide some sort of supervisor tree
 functionality out of the box. It is possible to provide this functionality
 without explicitly depending on the Suture library.
 
+A nice thing about the v4 interface that suture offers is that
+`Serve(ctx context.Context)` isn't even a bad interface for a library
+to offer; it creates no dependency on suture, it just integrates with
+it cleanly. But anyone can just `go yourthing.Serve(ctx)` perfectly
+reasonably themselves too.
+
 Changelog
 ---------
 
