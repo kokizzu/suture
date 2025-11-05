@@ -43,6 +43,55 @@ Special Thanks
 Special thanks to the [Syncthing team](https://syncthing.net/), who have
 been fantastic about working with me to push fixes upstream of them.
 
+synctest in Go 1.25
+-------------------
+
+suture's supervisors are safe to use in synctest bubbles, but it turns
+out synctest doubles as a great way to discover that your services
+don't shut down correctly when your supervisor does. You'll need to
+create a context that will be cancelled within the synctest Test
+function (the context for the test itself gets cancelled too late),
+and use that to start the supervisor(s).
+
+If you get `panic: deadlock: main bubble goroutine has exited but
+blocked goroutines remain`, you'll see a few suture-related goroutines
+in the resulting panic block. One will look something like:
+
+```
+github.com/thejerf/suture/v4.(*Supervisor).runService.func1()
+        /home/jbowers/go/pkg/mod/github.com/thejerf/suture/v4@v4.0.6/supervisor.go:541 +0x2e
+github.com/thejerf/suture/v4.(*Supervisor).stopSupervisor.func1(0x0)
+        /home/jbowers/go/pkg/mod/github.com/thejerf/suture/v4@v4.0.6/supervisor.go:618 +0x27
+```
+
+at the top. This is a goroutine suture is using trying to shut your
+errant service down. It is blocked because your service is not
+shutting down.
+
+You should see another that has a top like this:
+
+```
+github.com/thejerf/suture/v4.(*Supervisor).stopSupervisor(0xc00016c8c0)
+        /home/jbowers/go/pkg/mod/github.com/thejerf/suture/v4@v4.0.6/supervisor.go:627 +0x373
+github.com/thejerf/suture/v4.(*Supervisor).Serve(0xc00016c8c0, {0xa4d4f8?, 0xc0001505a0?})
+        /home/jbowers/go/pkg/mod/github.com/thejerf/suture/v4@v4.0.6/supervisor.go:356 +0xd3b
+```
+
+This is the core supervisor's goroutine. You'll see below this part of
+the stack trace where you called `.Serve(ctx)` on the supervisor. This
+is also waiting for your service to shut down.
+
+You'll see another for the test itself, pointing at the
+`synctest.Test` call.
+
+There should be at least one more stack trace which points to one of
+your services, and what line it is currently blocked on. This should
+point directly at the location the service got "stuck" and where you
+need to be additionally examining or using the passed-in context value
+for the service to shut the service down. Once you do that for any
+blocked services, synctest should shut your supervision tree down
+normally and you should no longer get synctest errors.
+
 Major Versions
 --------------
 
