@@ -76,7 +76,7 @@ func TestFailures(t *testing.T) {
 	defer func() {
 		// to avoid deadlocks during shutdown, we have to not try to send
 		// things out on channels while we're shutting down (this undoes the
-		// LogFailure overide about 25 lines down)
+		// LogFailure override about 25 lines down)
 		s.LogFailure = func(*Supervisor, Service, string, float64, float64, bool, interface{}, []byte) {}
 		s.Stop()
 	}()
@@ -318,7 +318,7 @@ func TestStoppingSupervisorStopsServices(t *testing.T) {
 	<-service.stop
 
 	if s.sendControl(syncSupervisor{}) {
-		t.Fatal("supervisor is shut down, should be returning fals for sendControl")
+		t.Fatal("supervisor is shut down, should be returning false for sendControl")
 	}
 	if s.Services() != nil {
 		t.Fatal("Non-running supervisor is returning services list")
