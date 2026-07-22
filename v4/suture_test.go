@@ -81,7 +81,7 @@ func TestFailures(t *testing.T) {
 	defer func() {
 		// to avoid deadlocks during shutdown, we have to not try to send
 		// things out on channels while we're shutting down (this undoes the
-		// LogFailure overide about 25 lines down)
+		// LogFailure override about 25 lines down)
 		s.spec.EventHook = func(Event) {}
 		cancel()
 	}()
