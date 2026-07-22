@@ -32,6 +32,8 @@ const (
 	EventTypeServiceTerminate
 	EventTypeBackoff
 	EventTypeResume
+	EventTypeServiceStart
+	EventTypeServiceStop
 )
 
 type EventStopTimeout struct {
@@ -182,5 +184,49 @@ func (e EventResume) String() string {
 func (e EventResume) Map() map[string]interface{} {
 	return map[string]interface{}{
 		"supervisor_name": e.SupervisorName,
+	}
+}
+
+type EventServiceStart struct {
+	Supervisor     *Supervisor `json:"-"`
+	SupervisorName string      `json:"supervisor_name"`
+	Service        Service     `json:"-"`
+	ServiceName    string      `json:"service_name"`
+}
+
+func (e EventServiceStart) Type() EventType {
+	return EventTypeServiceStart
+}
+
+func (e EventServiceStart) String() string {
+	return fmt.Sprintf("%s: Service %s started.", e.Supervisor, e.Service)
+}
+
+func (e EventServiceStart) Map() map[string]interface{} {
+	return map[string]interface{}{
+		"supervisor_name": e.SupervisorName,
+		"service_name":    e.ServiceName,
+	}
+}
+
+type EventServiceStop struct {
+	Supervisor     *Supervisor `json:"-"`
+	SupervisorName string      `json:"supervisor_name"`
+	Service        Service     `json:"-"`
+	ServiceName    string      `json:"service_name"`
+}
+
+func (e EventServiceStop) Type() EventType {
+	return EventTypeServiceStop
+}
+
+func (e EventServiceStop) String() string {
+	return fmt.Sprintf("%s: Service %s stopped.", e.Supervisor, e.Service)
+}
+
+func (e EventServiceStop) Map() map[string]interface{} {
+	return map[string]interface{}{
+		"supervisor_name": e.SupervisorName,
+		"service_name":    e.ServiceName,
 	}
 }
